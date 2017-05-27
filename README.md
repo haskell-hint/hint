@@ -13,5 +13,5 @@ API.
 
 ### Example
 
-Check [example.hs](examples/example.hs) to see a simple but
+Check [examples/example.hs](https://github.com/mvdan/hint/blob/HEAD/examples/example.hs) to see a simple but
 comprehensive example (it must be run from the `examples` directory).
