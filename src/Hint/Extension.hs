@@ -148,6 +148,7 @@ data Extension = OverlappingInstances
                | MonadFailDesugaring
                | TemplateHaskellQuotes
                | OverloadedLabels
+               | TypeFamilyDependencies
                | NoOverlappingInstances
                | NoUndecidableInstances
                | NoIncoherentInstances
@@ -266,6 +267,7 @@ data Extension = OverlappingInstances
                | NoMonadFailDesugaring
                | NoTemplateHaskellQuotes
                | NoOverloadedLabels
+               | NoTypeFamilyDependencies
                | UnknownExtension String
         deriving (Eq, Show, Read)
 
@@ -388,6 +390,7 @@ knownExtensions = [OverlappingInstances,
                    MonadFailDesugaring,
                    TemplateHaskellQuotes,
                    OverloadedLabels,
+                   TypeFamilyDependencies,
                    NoOverlappingInstances,
                    NoUndecidableInstances,
                    NoIncoherentInstances,
@@ -505,5 +508,6 @@ knownExtensions = [OverlappingInstances,
                    NoUndecidableSuperClasses,
                    NoMonadFailDesugaring,
                    NoTemplateHaskellQuotes,
-                   NoOverloadedLabels
+                   NoOverloadedLabels,
+                   NoTypeFamilyDependencies
                    ]
