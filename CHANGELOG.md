@@ -1,3 +1,7 @@
+### Upcoming release
+
+* Add `runStmt` for executing statements in the `IO` monad and binding new names.
+
 ### 0.7.0
 
 * Support for GHC 8.2

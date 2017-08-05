@@ -68,3 +68,10 @@ testHint =
       say "Here we evaluate an expression of type string, that when evaluated (again) leads to a string"
       res <- interpret "head $ map show [\"Worked!\", \"Didn't work\"]" infer >>= flip interpret infer
       say res
+      emptyLine
+      say "We can also execute statements in the IO monad and bind new names, e.g."
+      let stmts = ["x <- return 42", "print x"]
+      forM_ stmts $ \s -> do
+          say $ "    " ++ s
+          runStmt s
+      emptyLine

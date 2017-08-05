@@ -1,10 +1,13 @@
 module Hint.Eval (
       interpret, as, infer,
       unsafeInterpret,
-      eval, parens
+      eval, runStmt,
+      parens
 ) where
 
 import qualified GHC.Exts (unsafeCoerce#)
+
+import Control.Exception
 
 import Data.Typeable hiding (typeOf)
 import qualified Data.Typeable (typeOf)
@@ -54,6 +57,31 @@ eval expr = do in_scope_show   <- supportShow
                in_scope_String <- supportString
                let show_expr = unwords [in_scope_show, parens expr]
                unsafeInterpret show_expr in_scope_String
+
+-- | Evaluate a statement in the 'IO' monad, possibly binding new names.
+--
+-- Example:
+--
+-- > runStmt "x <- return 42"
+-- > runStmt "print x"
+runStmt :: (MonadInterpreter m) => String -> m ()
+runStmt = mayFail . runGhc1 go
+    where
+#if __GLASGOW_HASKELL__ >= 800
+    go statements = do
+        result <- GHC.execStmt statements GHC.execOptions
+        return $ case result of
+            GHC.ExecComplete { GHC.execResult = Right _ } -> Just ()
+            GHC.ExecComplete { GHC.execResult = Left  e } -> throw e
+            _                                             -> Nothing
+#else
+    go statements = do
+        result <- GHC.runStmt statements GHC.RunToCompletion
+        return $ case result of
+            GHC.RunOk _        -> Just ()
+            GHC.RunException e -> throw e
+            _                  -> Nothing
+#endif
 
 -- | Conceptually, @parens s = \"(\" ++ s ++ \")\"@, where s is any valid haskell
 -- expression. In practice, it is harder than this.
