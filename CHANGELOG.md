@@ -128,7 +128,7 @@
 * Exports functions parens and isInterpretedModule
 * Experimental support for module annotations
 * Uses extensible-exceptions in order to provide a uniform interface
-  accross different ghc versions
+  across different ghc versions
 * Provides an Applicative instance for IntepreterT
 * Adds an option to configurate the searchPath
 
