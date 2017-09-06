@@ -2,7 +2,7 @@ module Hint.Context (
       isModuleInterpreted,
       loadModules, getLoadedModules, setTopLevelModules,
       setImports, setImportsQ,
-      reset,
+      reset, reload,
 
       PhantomModule(..),
       cleanPhantomModules,
@@ -197,14 +197,18 @@ isPhantomModule mn = do (as,zs) <- getPhantomModules
 loadModules :: MonadInterpreter m => [String] -> m ()
 loadModules fs = do -- first, unload everything, and do some clean-up
                     reset
-                    doLoad fs `catchIE` (\e -> reset >> throwM e)
+                    targets <- mapM (\f->runGhc2 GHC.guessTarget f Nothing) fs
+                    runGhc1 GHC.setTargets targets
+                    reload
 
-doLoad :: MonadInterpreter m => [String] -> m ()
-doLoad fs = mayFail $ do
-                   targets <- mapM (\f->runGhc2 GHC.guessTarget f Nothing) fs
-                   --
-                   runGhc1 GHC.setTargets targets
-                   res <- runGhc1 GHC.load GHC.LoadAllTargets
+-- | Reload any loaded modules that have changed, similar to a @:reload@ in GHCi.
+-- Note that you may need to restore your set of top level modules afterwards.
+reload :: MonadInterpreter m => m ()
+reload = doLoad GHC.LoadAllTargets `catchIE` (\e -> reset >> throwM e)
+
+doLoad :: MonadInterpreter m => GHC.LoadHowMuch -> m ()
+doLoad howmuch = mayFail $ do
+                   res <- runGhc1 GHC.load howmuch
                    -- loading the targets removes the support module
                    reinstallSupportModule
                    return $ guard (isSucceeded res) >> Just ()

@@ -24,7 +24,7 @@ module Language.Haskell.Interpreter(
      ModuleName, isModuleInterpreted,
      loadModules, getLoadedModules, setTopLevelModules,
      setImports, setImportsQ,
-     reset,
+     reset, reload,
     -- ** Module querying
      ModuleElem(..), Id, name, children,
      getModuleExports,

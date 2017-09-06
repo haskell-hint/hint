@@ -20,8 +20,8 @@ import qualified Test.HUnit as HUnit
 
 import Language.Haskell.Interpreter
 
-test_reload_modified :: TestCase
-test_reload_modified = TestCase "reload_modified" [mod_file] $ do
+test_load_modified :: TestCase
+test_load_modified = TestCase "load_modified" [mod_file] $ do
                             liftIO $ writeFile mod_file mod_v1
                             f_v1 <- get_f
                             --
@@ -30,7 +30,7 @@ test_reload_modified = TestCase "reload_modified" [mod_file] $ do
                             --
                             liftIO $ (f_v1 5, f_v2 5) @?= (5, 6)
     --
-    where mod_name = "TEST_ReloadModified"
+    where mod_name = "TEST_LoadModified"
           mod_file = mod_name ++ ".hs"
           --
           mod_v1   = unlines ["module " ++ mod_name,
@@ -45,6 +45,42 @@ test_reload_modified = TestCase "reload_modified" [mod_file] $ do
           get_f    = do loadModules [mod_file]
                         setTopLevelModules [mod_name]
                         interpret "f" (as :: Int -> Int)
+
+test_reload_modified :: TestCase
+test_reload_modified = TestCase "reload_modified" [mod_file_a, mod_file_b] $ do
+                             liftIO $ writeFile mod_file_a mod_a_v1
+                             loadModules [mod_file_a]
+                             setTopLevelModules [mod_name_a]
+                             f_v1 <- interpret "fin" (as :: String -> String)
+                             let a = (f_v1 "foo")
+                             --
+                             liftIO $ writeFile mod_file_a mod_a_v2
+                             liftIO $ writeFile mod_file_b mod_b
+                             set [searchPath := ["."]]
+                             reload
+                             setTopLevelModules [mod_name_a]
+                             f_v2 <- interpret "fun" (as :: String -> String)
+                             let b = (f_v2 "foo")
+                             --
+                             liftIO $ (a, b) @?= ("foooof", "ooffoo")
+    --
+    where mod_name_a = "TEST_ReloadModified"
+          mod_file_a = mod_name_a ++ ".hs"
+          --
+          mod_name_b = "TEST_ReloadModifiedB"
+          mod_file_b = mod_name_b ++ ".hs"
+          --
+          mod_a_v1   = unlines ["module " ++ mod_name_a ++ " where",
+                                "fin :: String -> String",
+                                "fin s = s ++ reverse s"]
+          mod_a_v2   = unlines ["module " ++ mod_name_a ++ " where",
+                               "import " ++ mod_name_b ++ " (gi)",
+                                "fun :: String -> String",
+                                "fun = gi"]
+          mod_b      = unlines ["module " ++ mod_name_b ++ " where",
+                                "gi :: String -> String",
+                                "gi s = reverse s ++ s"]
+
 
 test_lang_exts :: TestCase
 test_lang_exts = TestCase "lang_exts" [mod_file] $ do
@@ -215,6 +251,7 @@ test_normalize_type = TestCase "normalize_type" [mod_file] $ do
 
 tests :: [TestCase]
 tests = [test_reload_modified
+        ,test_load_modified
         ,test_lang_exts
         ,test_work_in_main
         ,test_comments_in_expr
