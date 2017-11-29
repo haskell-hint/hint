@@ -254,7 +254,7 @@ setTopLevelModules ms =
 
 -- | Sets the modules whose exports must be in context.
 --
---   Warning: 'setImports' and 'setImportsQ' are mutually exclusive.
+--   Warning: 'setImports', 'setImportsQ', and 'setImportsF' are mutually exclusive.
 --   If you have a list of modules to be used qualified and another list
 --   unqualified, then you need to do something like
 --
@@ -269,7 +269,7 @@ setImports ms = setImportsF $ map (\m -> ModuleImport m NotQualified NoImportLis
 --
 --   Here, "map" will refer to Prelude.map and "M.map" to Data.Map.map.
 setImportsQ :: MonadInterpreter m => [(ModuleName, Maybe String)] -> m ()
-setImportsQ ms = setImportsF $ map (\(m,q) -> ModuleImport m (maybe NotQualified (QualifiedAs . pure) q) NoImportList) ms
+setImportsQ ms = setImportsF $ map (\(m,q) -> ModuleImport m (maybe NotQualified (QualifiedAs . Just) q) NoImportList) ms
 
 -- | Sets the modules whose exports must be in context; some
 --   may be qualified or have imports lists. E.g.:
@@ -305,16 +305,16 @@ setImportsF ms = do
                                                                        else Left m) ms
     isQualified m = modQual m /= NotQualified
     hasImportList m = modImp m /= NoImportList
-    newImportLine m = mconcat ["import ", case modQual m of
+    newImportLine m = concat ["import ", case modQual m of
                                             NotQualified -> modName m
                                             ImportAs q -> modName m ++ " as " ++ q
                                             QualifiedAs Nothing -> "qualified " ++ modName m
                                             QualifiedAs (Just q) -> "qualified " ++ modName m ++ " as " ++ q
-                              ,case modImp m of
+                             ,case modImp m of
                                  NoImportList -> ""
                                  ImportList l -> " (" ++ intercalate "," l ++ ")"
                                  HidingList l -> " hiding (" ++ intercalate "," l ++ ")"
-                              ]
+                             ]
 
 -- | 'cleanPhantomModules' works like 'reset', but skips the
 --   loading of the support module that installs '_show'. Its purpose
