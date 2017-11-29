@@ -274,7 +274,7 @@ setImportsQ ms = setImportsF $ map (\(m,q) -> ModuleImport m (maybe NotQualified
 -- | Sets the modules whose exports must be in context; some
 --   may be qualified or have imports lists. E.g.:
 --
---   @setImportsF [ModuleImport "Prelude" NotQualified NoImportList, ModuleImport "Data.Text" (QualifiedAs $ Just "Text") (HidingList ["pack"])]
+--   @setImportsF [ModuleImport "Prelude" NotQualified NoImportList, ModuleImport "Data.Text" (QualifiedAs $ Just "Text") (HidingList ["pack"])]@
 
 setImportsF :: MonadInterpreter m => [ModuleImport] -> m ()
 setImportsF ms = do

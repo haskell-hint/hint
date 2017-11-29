@@ -75,6 +75,8 @@ data ImportList = NoImportList | ImportList [String] | HidingList [String]
 data ModuleQualification = NotQualified | ImportAs String | QualifiedAs (Maybe String)
   deriving (Eq, Show)
 
+-- | Represent module import statement.
+--   See 'setImportsF'
 data ModuleImport = ModuleImport { modName :: String
                                  , modQual :: ModuleQualification
                                  , modImp  :: ImportList
