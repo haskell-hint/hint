@@ -6,6 +6,7 @@ module Hint.Base (
     InterpreterSession, SessionData(..), GhcErrLogger,
     InterpreterState(..), fromState, onState,
     InterpreterConfiguration(..),
+    ImportList(..), ModuleQualification(..), ModuleImport(..),
 
     runGhc1, runGhc2,
 
@@ -64,10 +65,20 @@ data InterpreterState = St {
                            zombiePhantoms    :: [PhantomModule],
                            hintSupportModule :: PhantomModule,
                            importQualHackMod :: Maybe PhantomModule,
-                           qualImports       :: [(ModuleName, String)],
+                           qualImports       :: [ModuleImport],
                            defaultExts       :: [(Extension, Bool)], -- R/O
                            configuration     :: InterpreterConfiguration
                         }
+
+data ImportList = NoImportList | ImportList [String] | HidingList [String]
+  deriving (Eq, Show)
+data ModuleQualification = NotQualified | ImportAs String | QualifiedAs (Maybe String)
+  deriving (Eq, Show)
+
+data ModuleImport = ModuleImport { modName :: String
+                                 , modQual :: ModuleQualification
+                                 , modImp  :: ImportList
+                                 } deriving (Show)
 
 data InterpreterConfiguration = Conf {
                                   searchFilePath :: [FilePath],

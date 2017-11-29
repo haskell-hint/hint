@@ -1,7 +1,7 @@
 module Hint.Context (
       isModuleInterpreted,
       loadModules, getLoadedModules, setTopLevelModules,
-      setImports, setImportsQ,
+      setImports, setImportsQ, setImportsF,
       reset,
 
       PhantomModule(..),
@@ -13,6 +13,7 @@ module Hint.Context (
 import Prelude hiding (mod)
 
 import Data.Char
+import Data.Either (partitionEithers)
 import Data.List
 
 import Control.Arrow ((***))
@@ -23,7 +24,6 @@ import Control.Monad.Catch
 
 import Hint.Base
 import Hint.Conversions
-import qualified Hint.Util as Util
 import qualified Hint.CompatPlatform as Compat
 
 import qualified Hint.GHC as GHC
@@ -260,7 +260,7 @@ setTopLevelModules ms =
 --
 --   >  setImportsQ ((zip unqualified $ repeat Nothing) ++ qualifieds)
 setImports :: MonadInterpreter m => [ModuleName] -> m ()
-setImports ms = setImportsQ $ zip ms (repeat Nothing)
+setImports ms = setImportsF $ map (\m -> ModuleImport m NotQualified NoImportList) ms
 
 -- | Sets the modules whose exports must be in context; some
 --   of them may be qualified. E.g.:
@@ -269,32 +269,52 @@ setImports ms = setImportsQ $ zip ms (repeat Nothing)
 --
 --   Here, "map" will refer to Prelude.map and "M.map" to Data.Map.map.
 setImportsQ :: MonadInterpreter m => [(ModuleName, Maybe String)] -> m ()
-setImportsQ ms =
-    do let qualOrNot (a, mb) = maybe (Right a) (Left . (,) a) mb
-           (quals, unquals) = Util.partitionEither $ map qualOrNot ms
-       --
-       unqual_mods <- mapM findModule unquals
-       mapM_ (findModule . fst) quals -- just to be sure they exist
+setImportsQ ms = setImportsF $ map (\(m,q) -> ModuleImport m (maybe NotQualified (QualifiedAs . pure) q) NoImportList) ms
+
+-- | Sets the modules whose exports must be in context; some
+--   may be qualified or have imports lists. E.g.:
+--
+--   @setImportsF [ModuleImport "Prelude" NotQualified NoImportList, ModuleImport "Data.Text" (QualifiedAs $ Just "Text") (HidingList ["pack"])]
+
+setImportsF :: MonadInterpreter m => [ModuleImport] -> m ()
+setImportsF ms = do
+       regularMods <- mapM (findModule . modName) regularImports
+       mapM_ (findModule . modName) phantomImports -- just to be sure they exist
        --
        old_qual_hack_mod <- fromState importQualHackMod
        maybe (return ()) removePhantomModule old_qual_hack_mod
        --
-       new_pm <- if not $ null quals
-                   then do
+       new_pm <- if null phantomImports
+                   then return Nothing
+                   else do
                      new_pm <- addPhantomModule $ \mod_name -> unlines $
                                 ("module " ++ mod_name ++ " where ") :
-                                ["import qualified " ++ m ++ " as " ++ n |
-                                   (m,n) <- quals]
+                                map newImportLine phantomImports
                      onState (\s -> s{importQualHackMod = Just new_pm})
                      return $ Just new_pm
-                   else return Nothing
        --
        pm <- maybe (return []) (findModule . pmName >=> return . return) new_pm
        (old_top_level, _) <- runGhc getContext
        let new_top_level = pm ++ old_top_level
-       runGhc2 setContextModules new_top_level unqual_mods
+       runGhc2 setContextModules new_top_level regularMods
        --
-       onState (\s ->s{qualImports = quals})
+       onState (\s ->s{qualImports = phantomImports})
+  where
+    (regularImports, phantomImports) = partitionEithers $ map (\m -> if isQualified m || hasImportList m
+                                                                       then Right m
+                                                                       else Left m) ms
+    isQualified m = modQual m /= NotQualified
+    hasImportList m = modImp m /= NoImportList
+    newImportLine m = mconcat ["import ", case modQual m of
+                                            NotQualified -> modName m
+                                            ImportAs q -> modName m ++ " as " ++ q
+                                            QualifiedAs Nothing -> "qualified " ++ modName m
+                                            QualifiedAs (Just q) -> "qualified " ++ modName m ++ " as " ++ q
+                              ,case modImp m of
+                                 NoImportList -> ""
+                                 ImportList l -> " (" ++ intercalate "," l ++ ")"
+                                 HidingList l -> " hiding (" ++ intercalate "," l ++ ")"
+                              ]
 
 -- | 'cleanPhantomModules' works like 'reset', but skips the
 --   loading of the support module that installs '_show'. Its purpose
