@@ -1,5 +1,5 @@
 module Hint.Typecheck (
-      typeOf, typeChecks, kindOf, normalizeType
+      typeOf, typeChecks, kindOf, normalizeType, onCompilationError, typeChecksWithDetails
 ) where
 
 import Control.Monad.Catch
@@ -23,10 +23,20 @@ typeOf expr =
        typeToString ty
 
 -- | Tests if the expression type checks.
+--
+-- NB. Be careful if there is `-fdefer-type-errors` involved.
+-- Perhaps unsurprisingly, that can falsely make @typeChecks@ and @getType@
+-- return @True@ and @Right _@ respectively.
 typeChecks :: MonadInterpreter m => String -> m Bool
 typeChecks expr = (typeOf expr >> return True)
                               `catchIE`
                               onCompilationError (\_ -> return False)
+
+-- | Similar to @typeChecks@, but gives more information, e.g. the type errors.
+typeChecksWithDetails :: MonadInterpreter m => String -> m (Either [GhcError] String)
+typeChecksWithDetails expr = (typeOf expr >>= return . Right)
+                              `catchIE`
+                              onCompilationError (\a -> return (Left a))
 
 -- | Returns a string representation of the kind of the type expression.
 kindOf :: MonadInterpreter m => String -> m String
