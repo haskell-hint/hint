@@ -37,7 +37,7 @@ module Language.Haskell.Interpreter(
     -- ** Type inference
      typeOf, typeChecks, kindOf, normalizeType,
     -- ** Evaluation
-     interpret, as, infer, eval, runStmt,
+     interpret, eval, runStmt,
     -- * Error handling
      InterpreterError(..), GhcError(..), MultipleInstancesNotAllowed(..),
     -- * Miscellaneous

@@ -1,6 +1,5 @@
 module Hint.Eval (
-      interpret, as, infer,
-      unsafeInterpret,
+      interpret, unsafeInterpret,
       eval, runStmt,
       parens
 ) where
@@ -9,8 +8,8 @@ import qualified GHC.Exts (unsafeCoerce#)
 
 import Control.Exception
 
+import Data.Proxy
 import Data.Typeable hiding (typeOf)
-import qualified Data.Typeable (typeOf)
 
 import Hint.Base
 import Hint.Context
@@ -19,19 +18,9 @@ import Hint.Util
 
 import qualified Hint.GHC as GHC
 
--- | Convenience functions to be used with @interpret@ to provide witnesses.
---   Example:
---
---   * @interpret \"head [True,False]\" (as :: Bool)@
---
---   * @interpret \"head $ map show [True,False]\" infer >>= flip interpret (as :: Bool)@
-as, infer :: Typeable a => a
-as    = undefined
-infer = undefined
-
 -- | Evaluates an expression, given a witness for its monomorphic type.
-interpret :: (MonadInterpreter m, Typeable a) => String -> a -> m a
-interpret expr wit = unsafeInterpret expr (show $ Data.Typeable.typeOf wit)
+interpret :: (MonadInterpreter m, Typeable a) => String -> Proxy a -> m a
+interpret expr = unsafeInterpret expr . show . typeRep
 
 unsafeInterpret :: (MonadInterpreter m) => String -> String -> m a
 unsafeInterpret expr type_str =

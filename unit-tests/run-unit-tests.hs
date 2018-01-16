@@ -10,6 +10,8 @@ import Control.Monad (liftM, when, void, (>=>))
 import Control.Concurrent (forkIO)
 import Control.Concurrent.MVar
 
+import Data.Proxy
+
 import System.IO
 import System.FilePath
 import System.Directory
@@ -44,7 +46,7 @@ test_reload_modified = TestCase "reload_modified" [mod_file] $ do
           --
           get_f    = do loadModules [mod_file]
                         setTopLevelModules [mod_name]
-                        interpret "f" (as :: Int -> Int)
+                        interpret "f" (Proxy :: Proxy (Int -> Int))
 
 test_lang_exts :: TestCase
 test_lang_exts = TestCase "lang_exts" [mod_file] $ do
@@ -72,7 +74,7 @@ test_work_in_main = TestCase "work_in_main" [mod_file] $ do
                         --
                         typeOf "f $ (1 + 1 :: Int)" @@?= "Int"
                         eval "f . Mb.fromJust $ Just [1,2]" @@?= "[1,2]"
-                        interpret "f $ 1 == 2" infer @@?= False
+                        interpret "f $ 1 == 2" Proxy @@?= False
     --
     where mod_file     = "TEST_WorkInMain.hs"
 
@@ -94,7 +96,7 @@ test_comments_in_expr = TestCase "comments_in_expr" [] $ do
                             let expr = "length $ concat [[1,2],[3]] -- bla"
                             typeChecks expr @@? "comment on expression"
                             _ <- eval expr
-                            _ <- interpret expr (as :: Int)
+                            _ <- interpret expr (Proxy :: Proxy Int)
                             return ()
 
 test_qual_import :: TestCase
