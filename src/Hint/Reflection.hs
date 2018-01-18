@@ -47,7 +47,7 @@ asModElemList df xs = concat [
            (
              [asModElem df c | c@(GHC.ATyCon c') <- xs, GHC.isClassTyCon c'],
              [asModElem df t | t@(GHC.ATyCon c') <- xs, (not . GHC.isClassTyCon) c'],
-             [asModElem df d | d@(GHC.AConLike (GHC.RealDataCon{})) <- xs],
+             [asModElem df d | d@(GHC.AConLike GHC.RealDataCon{}) <- xs],
              [asModElem df f | f@GHC.AnId{} <- xs]
            )
           cs' = [Class n $ filter (alsoIn fs) ms  | Class n ms  <- cs]

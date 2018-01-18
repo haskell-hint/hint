@@ -68,7 +68,7 @@ test_work_in_main = TestCase "work_in_main" [mod_file] $ do
                         loadModules [mod_file]
                         setTopLevelModules ["Main"]
                         setImportsQ [("Prelude", Nothing),
-                                       ("Data.Maybe", Just "Mb")]
+                                     ("Data.Maybe", Just "Mb")]
                         --
                         typeOf "f $ (1 + 1 :: Int)" @@?= "Int"
                         eval "f . Mb.fromJust $ Just [1,2]" @@?= "[1,2]"
@@ -103,6 +103,14 @@ test_qual_import = TestCase "qual_import" [] $ do
                                         ("Data.Map", Just "M")]
                            typeChecks "null []" @@? "Unqual null"
                            typeChecks "M.null M.empty" @@? "Qual null"
+
+test_full_import :: TestCase
+test_full_import = TestCase "full_import" [] $ do
+                           setImportsF [ ModuleImport "Prelude" (QualifiedAs Nothing) NoImportList
+                                       , ModuleImport "Data.List" (QualifiedAs $ Just "List") $ ImportList ["null"]
+                                       ]
+                           typeChecks "Prelude.null []" @@? "Qual prelude null"
+                           typeChecks "List.null []" @@? "Qual list null"
 
 test_basic_eval :: TestCase
 test_basic_eval = TestCase "basic_eval" [] $ eval "()" @@?= "()"
@@ -219,6 +227,7 @@ tests = [test_reload_modified
         ,test_work_in_main
         ,test_comments_in_expr
         ,test_qual_import
+        ,test_full_import
         ,test_basic_eval
         ,test_eval_layout
         ,test_show_in_scope

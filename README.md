@@ -11,6 +11,10 @@ and type-safe (even the coercion of expressions to values).
 It is, essentially, a huge subset of the GHC API wrapped in a simpler
 API.
 
+Compatibility is kept with the three last major GHC releases. For
+example, if the current version is GHC 8.2, Hint will work on 8.2, 8.0
+and 7.10.
+
 ### Example
 
 Check [example.hs](examples/example.hs) to see a simple but

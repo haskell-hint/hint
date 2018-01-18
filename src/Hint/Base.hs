@@ -6,6 +6,7 @@ module Hint.Base (
     InterpreterSession, SessionData(..), GhcErrLogger,
     InterpreterState(..), fromState, onState,
     InterpreterConfiguration(..),
+    ImportList(..), ModuleQualification(..), ModuleImport(..),
 
     runGhc1, runGhc2,
 
@@ -23,12 +24,9 @@ import Control.Monad.Catch as MC
 
 import Data.IORef
 import Data.Dynamic
+import qualified Data.List
 
 import qualified Hint.GHC as GHC
-
-#if MIN_VERSION_base(4,8,0)
-import qualified Data.List
-#endif
 
 import Hint.Extension
 
@@ -64,10 +62,22 @@ data InterpreterState = St {
                            zombiePhantoms    :: [PhantomModule],
                            hintSupportModule :: PhantomModule,
                            importQualHackMod :: Maybe PhantomModule,
-                           qualImports       :: [(ModuleName, String)],
+                           qualImports       :: [ModuleImport],
                            defaultExts       :: [(Extension, Bool)], -- R/O
                            configuration     :: InterpreterConfiguration
                         }
+
+data ImportList = NoImportList | ImportList [String] | HidingList [String]
+  deriving (Eq, Show)
+data ModuleQualification = NotQualified | ImportAs String | QualifiedAs (Maybe String)
+  deriving (Eq, Show)
+
+-- | Represent module import statement.
+--   See 'setImportsF'
+data ModuleImport = ModuleImport { modName :: String
+                                 , modQual :: ModuleQualification
+                                 , modImp  :: ImportList
+                                 } deriving (Show)
 
 data InterpreterConfiguration = Conf {
                                   searchFilePath :: [FilePath],
@@ -78,13 +88,11 @@ data InterpreterConfiguration = Conf {
 type InterpreterSession = SessionData ()
 
 instance Exception InterpreterError
-#if MIN_VERSION_base(4,8,0)
   where
     displayException (UnknownError err) = "UnknownError: " ++ err
     displayException (WontCompile  es)  = unlines . Data.List.nub . map errMsg $ es
     displayException (NotAllowed   err) = "NotAllowed: "   ++ err
     displayException (GhcException err) = "GhcException: " ++ err
-#endif
 
 type RunGhc  m a =
 #if __GLASGOW_HASKELL__ >= 800

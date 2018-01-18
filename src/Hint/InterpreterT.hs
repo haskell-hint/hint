@@ -94,11 +94,7 @@ initialize args =
        -- available; calling this function once is mandatory!
        _ <- runGhc1 GHC.setSessionDynFlags df2{GHC.log_action = log_handler}
 
-#if __GLASGOW_HASKELL__ >= 710
        let extMap      = map (\fs -> (GHC.flagSpecName fs, GHC.flagSpecFlag fs)) GHC.xFlags
-#else
-       let extMap      = map (\(a,b,_) -> (a,b)) GHC.xFlags
-#endif
        let toOpt e     = let err = error ("init error: unknown ext:" ++ show e)
                          in fromMaybe err (lookup e extMap)
        let getOptVal e = (asExtension e, GHC.xopt (toOpt e) df2)
