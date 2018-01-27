@@ -60,6 +60,7 @@ library
   exposed-modules: Language.Haskell.Interpreter
                    Language.Haskell.Interpreter.Extension
                    Language.Haskell.Interpreter.Unsafe
+                   Hint.Internal
   other-modules:   Hint.GHC
                    Hint.Base
                    Hint.InterpreterT
