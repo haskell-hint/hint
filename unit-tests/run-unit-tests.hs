@@ -2,18 +2,24 @@ module Main (main) where
 
 import Prelude hiding (catch)
 
-import Control.Exception.Extensible (ArithException(..))
+import Control.Exception.Extensible (ArithException(..), AsyncException(UserInterrupt))
 import Control.Monad.Catch as MC
 
 import Control.Monad (liftM, when, void, (>=>))
 
-import Control.Concurrent (forkIO)
+import Control.Concurrent (forkIO, threadDelay)
 import Control.Concurrent.MVar
+
+import Data.IORef
 
 import System.IO
 import System.FilePath
 import System.Directory
 import System.Exit
+#if defined(mingw32_HOST_OS) || defined(__MINGW32__)
+#else
+import System.Posix.Signals
+#endif
 
 import Test.HUnit ((@?=), (@?))
 import qualified Test.HUnit as HUnit
@@ -221,6 +227,47 @@ test_normalize_type = TestCase "normalize_type" [mod_file] $ do
                              ,"type instance Foo x = ()"]
           mod_file = "TEST_NormalizeType.hs"
 
+-- earlier versions of hint were accidentally overwriting the signal handlers
+-- for ^C and others.
+--
+-- note that hint was _not_ overwriting the signal handlers when the hint interpreter
+-- was itself executed inside the ghci interpreter. for this reason, this test always
+-- succeeds when executed from ghci and ghcid, regardless of whether the problematic
+-- behaviour has been fixed or not.
+test_signal_handlers :: IOTestCase
+test_signal_handlers = IOTestCase "signal_handlers" [] $ \runInterp -> do
+#if defined(mingw32_HOST_OS) || defined(__MINGW32__)
+        runInterp $ do
+          pure ()
+#else
+        signalDetectedRef <- newIORef False
+        interruptDetectedRef <- newIORef False
+        let detectSignal = writeIORef signalDetectedRef True
+            detectInterrupt = writeIORef interruptDetectedRef True
+            acquire = installHandler sigINT (Catch detectSignal) Nothing
+            release handler = installHandler sigINT handler Nothing
+        r <- bracket acquire release $ \_ -> do
+          runInterp $ do
+            liftIO $ do
+              r <- try $ do
+                raiseSignal sigINT
+                threadDelay 1000000  -- will be interrupted by the above signal
+              case r of
+                Left UserInterrupt -> do
+                  -- hint is _still_ accidentally overwriting the signal handler :(
+                  detectInterrupt
+                Left e -> do
+                  -- some other async exception, rethrow
+                  throwM e
+                Right () ->
+                  return ()
+        signalDetected <- readIORef signalDetectedRef
+        signalDetected @?= True
+        interruptDetected <- readIORef interruptDetectedRef
+        interruptDetected @?= False
+        return r
+#endif
+
 tests :: [TestCase]
 tests = [test_reload_modified
         ,test_lang_exts
@@ -240,14 +287,22 @@ tests = [test_reload_modified
         ,test_normalize_type
         ]
 
+ioTests :: [IOTestCase]
+ioTests = [test_signal_handlers
+          ]
+
 main :: IO ()
 main = do -- run the tests...
-          c  <- runTests False tests
+          c1 <- runTests False tests
+          c2 <- runIOTests False ioTests
           -- then run again, but with sandboxing on...
-          c' <- runTests True tests
+          c3 <- runTests True tests
+          c4 <- runIOTests True ioTests
           --
-          let failures  = HUnit.errors c  + HUnit.failures c +
-                          HUnit.errors c' + HUnit.failures c'
+          let failures  = HUnit.errors c1 + HUnit.failures c1 +
+                          HUnit.errors c2 + HUnit.failures c2 +
+                          HUnit.errors c3 + HUnit.failures c3 +
+                          HUnit.errors c4 + HUnit.failures c4
               exit_code
                   | failures > 0 = ExitFailure failures
                   | otherwise    = ExitSuccess
@@ -275,16 +330,16 @@ fails action = (action >> return False) `catchIE` (\_ -> return True)
 succeeds :: (MonadCatch m, MonadIO m) => m a -> m Bool
 succeeds = liftM not . fails
 
-data TestCase = TestCase String [FilePath] (Interpreter ())
+data IOTestCase = IOTestCase String [FilePath] ((Interpreter () -> IO (Either InterpreterError ())) -> IO (Either InterpreterError ()))
 
-runTests :: Bool -> [TestCase] -> IO HUnit.Counts
-runTests sandboxed = HUnit.runTestTT . HUnit.TestList . map build
-    where build (TestCase title tmps test) = HUnit.TestLabel title $
-                                                 HUnit.TestCase test_case
+runIOTests :: Bool -> [IOTestCase] -> IO HUnit.Counts
+runIOTests sandboxed = HUnit.runTestTT . HUnit.TestList . map build
+    where build (IOTestCase title tmps test) = HUnit.TestLabel title $
+                                                   HUnit.TestCase test_case
             where test_case = go `finally` clean_up
                   clean_up = mapM_ removeIfExists tmps
-                  go       = do r <- runInterpreter
-                                            (when sandboxed setSandbox >> test)
+                  go       = do r <- test (\body -> runInterpreter
+                                            (when sandboxed setSandbox >> body))
                                 either (printInterpreterError >=> (fail . show))
                                        return r
                   removeIfExists f = do existsF <- doesFileExist f
@@ -294,3 +349,11 @@ runTests sandboxed = HUnit.runTestTT . HUnit.TestList . map build
                                             do existsD <- doesDirectoryExist f
                                                when existsD $
                                                   removeDirectory f
+
+data TestCase = TestCase String [FilePath] (Interpreter ())
+
+runTests :: Bool -> [TestCase] -> IO HUnit.Counts
+runTests sandboxed = runIOTests sandboxed . map toIOTestCase
+  where
+    toIOTestCase :: TestCase -> IOTestCase
+    toIOTestCase (TestCase title tmps test) = IOTestCase title tmps ($ test)

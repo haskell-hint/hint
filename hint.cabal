@@ -43,6 +43,12 @@ test-suite unit-tests
                   extensible-exceptions,
                   exceptions == 0.8.*
 
+  if !os(windows) {
+      build-depends: unix >= 2.2.0.0
+  }
+
+  extensions:  CPP
+
 library
   build-depends: base == 4.*,
                  ghc >= 8.0 && < 8.6,

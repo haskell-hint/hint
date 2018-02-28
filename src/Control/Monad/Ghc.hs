@@ -11,7 +11,9 @@ import qualified Control.Monad.Trans as MTL
 
 import Control.Monad.Catch
 
-import qualified GHC (runGhcT)
+import Data.IORef
+
+import qualified GHC
 import qualified MonadUtils as GHC
 import qualified Exception as GHC
 import qualified GhcMonad as GHC
@@ -25,8 +27,18 @@ instance (Functor m, Monad m) => Applicative (GhcT m) where
   pure  = return
   (<*>) = ap
 
+-- adapted from https://github.com/ghc/ghc/blob/ghc-8.2/compiler/main/GHC.hs#L450-L459
+-- modified to _not_ catch ^C
+rawRunGhcT :: (MonadIO m, MonadMask m) => Maybe FilePath -> GHC.GhcT (MTLAdapter m) a -> MTLAdapter m a
+rawRunGhcT mb_top_dir ghct = do
+  ref <- liftIO $ newIORef (error "empty session")
+  let session = GHC.Session ref
+  flip GHC.unGhcT session $ {-GHC.withSignalHandlers $-} do -- do _not_ catch ^C
+    GHC.initGhcMonad mb_top_dir
+    GHC.withCleanupSession ghct
+
 runGhcT :: (MonadIO m, MonadMask m) => Maybe FilePath -> GhcT m a -> m a
-runGhcT f = unMTLA . GHC.runGhcT f . unGhcT
+runGhcT f = unMTLA . rawRunGhcT f . unGhcT
 
 instance MTL.MonadTrans GhcT where
     lift = GhcT . GHC.liftGhcT . MTLAdapter

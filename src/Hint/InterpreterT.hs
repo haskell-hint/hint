@@ -100,9 +100,9 @@ initialize args =
 
 -- | Executes the interpreter. Returns @Left InterpreterError@ in case of error.
 --
--- NB. The underlying ghc will overwrite certain signal handlers
--- (SIGINT, SIGHUP, SIGTERM, SIGQUIT on Posix systems, Ctrl-C handler on Windows).
--- In future versions of hint, this might be controlled by the user.
+-- NB. In hint-0.7.0 and earlier, the underlying ghc was accidentally
+-- overwriting certain signal handlers (SIGINT, SIGHUP, SIGTERM, SIGQUIT on
+-- Posix systems, Ctrl-C handler on Windows).
 runInterpreter :: (MonadIO m, MonadMask m)
                => InterpreterT m a
                -> m (Either InterpreterError a)
