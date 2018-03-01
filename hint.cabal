@@ -45,7 +45,7 @@ test-suite unit-tests
 
 library
   build-depends: base == 4.*,
-                 ghc >= 7.10 && < 8.4,
+                 ghc >= 8.0 && < 8.5,
                  ghc-paths,
                  mtl,
                  filepath,
