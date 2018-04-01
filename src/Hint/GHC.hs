@@ -1,11 +1,17 @@
 module Hint.GHC (
-    Message, module X
+    Message, module X,
+#if __GLASGOW_HASKELL__ < 804
+    GhcPs, mgModSummaries
+#endif
 ) where
 
 import GHC as X hiding (Phase, GhcT, runGhcT)
 import Control.Monad.Ghc as X (GhcT, runGhcT)
 
 import HscTypes as X (SourceError, srcErrorMessages, GhcApiError)
+#if __GLASGOW_HASKELL__ >= 804
+import HscTypes as X (mgModSummaries)
+#endif
 
 import Outputable as X (PprStyle, SDoc, Outputable(ppr),
                         showSDoc, showSDocForUser, showSDocUnqual,
@@ -33,3 +39,10 @@ import ConLike as X (ConLike(RealDataCon))
 import DynFlags as X (addWay', Way(..), dynamicGhc)
 
 type Message = MsgDoc
+
+#if __GLASGOW_HASKELL__ < 804
+type GhcPs = RdrName
+
+mgModSummaries :: ModuleGraph -> [ModSummary]
+mgModSummaries = id
+#endif

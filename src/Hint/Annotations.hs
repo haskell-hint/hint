@@ -6,7 +6,11 @@ module Hint.Annotations (
 import Control.Monad
 import Data.Data
 import Annotations
+#if __GLASGOW_HASKELL__ >= 800
+import GHC.Serialized
+#else
 import Serialized
+#endif
 
 import Hint.Base
 import HscTypes (hsc_mod_graph, ms_mod)
@@ -15,7 +19,7 @@ import qualified Hint.GHC as GHC
 -- Get the annotations associated with a particular module.
 getModuleAnnotations :: (Data a, MonadInterpreter m) => a -> String -> m [a]
 getModuleAnnotations _ x = do
-    mods <- liftM hsc_mod_graph $ runGhc GHC.getSession
+    mods <- liftM (GHC.mgModSummaries . hsc_mod_graph) $ runGhc GHC.getSession
     let x' = filter ((==) x . GHC.moduleNameString . GHC.moduleName . ms_mod) mods
     v <- mapM (anns . ModuleTarget . ms_mod) x'
     return $ concat v

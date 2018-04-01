@@ -29,7 +29,12 @@ runParser parser expr =
        case parse_res of
            GHC.POk{}            -> return ParseOk
            --
-           GHC.PFailed span err -> return (ParseError span err)
+#if __GLASGOW_HASKELL__ >= 804
+           GHC.PFailed _ span err
+#else
+           GHC.PFailed span err
+#endif
+                                -> return (ParseError span err)
 
 failOnParseError :: MonadInterpreter m
                  => (String -> m ParseResult)

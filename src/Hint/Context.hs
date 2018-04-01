@@ -57,13 +57,13 @@ newPhantomModule =
 allModulesInContext :: MonadInterpreter m => m ([ModuleName], [ModuleName])
 allModulesInContext = runGhc getContextNames
 
-getContext :: GHC.GhcMonad m => m ([GHC.Module], [GHC.ImportDecl GHC.RdrName])
+getContext :: GHC.GhcMonad m => m ([GHC.Module], [GHC.ImportDecl GHC.GhcPs])
 getContext = GHC.getContext >>= foldM f ([], [])
   where
     f :: (GHC.GhcMonad m) =>
-         ([GHC.Module], [GHC.ImportDecl GHC.RdrName]) ->
+         ([GHC.Module], [GHC.ImportDecl GHC.GhcPs]) ->
          GHC.InteractiveImport ->
-         m ([GHC.Module], [GHC.ImportDecl GHC.RdrName])
+         m ([GHC.Module], [GHC.ImportDecl GHC.GhcPs])
     f (ns, ds) i = case i of
       (GHC.IIDecl d)     -> return (ns, d : ds)
       m@(GHC.IIModule _) -> do n <- iiModToMod m; return (n : ns, ds)
@@ -80,7 +80,7 @@ getContextNames = fmap (map name *** map decl) getContext
     where name = GHC.moduleNameString . GHC.moduleName
           decl = GHC.moduleNameString . GHC.unLoc . GHC.ideclName
 
-setContext :: GHC.GhcMonad m => [GHC.Module] -> [GHC.ImportDecl GHC.RdrName] -> m ()
+setContext :: GHC.GhcMonad m => [GHC.Module] -> [GHC.ImportDecl GHC.GhcPs] -> m ()
 setContext ms ds =
   let ms' = map modToIIMod ms
       ds' = map GHC.IIDecl ds
@@ -225,7 +225,8 @@ modNameFromSummary = moduleToString . GHC.ms_mod
 getLoadedModSummaries :: MonadInterpreter m => m [GHC.ModSummary]
 getLoadedModSummaries =
   do all_mod_summ <- runGhc GHC.getModuleGraph
-     filterM (runGhc1 GHC.isLoaded . GHC.ms_mod_name) all_mod_summ
+     filterM (runGhc1 GHC.isLoaded . GHC.ms_mod_name)
+             (GHC.mgModSummaries all_mod_summ)
 
 -- | Sets the modules whose context is used during evaluation. All bindings
 --   of these modules are in scope, not only those exported.

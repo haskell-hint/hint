@@ -205,8 +205,9 @@ findModule mn = mapGhcExceptions NotAllowed $
 moduleIsLoaded :: MonadInterpreter m => ModuleName -> m Bool
 moduleIsLoaded mn = (findModule mn >> return True)
                    `catchIE` (\e -> case e of
-                                      NotAllowed{} -> return False
-                                      _            -> throwM e)
+                                      NotAllowed{}  -> return False
+                                      WontCompile{} -> return False
+                                      _             -> throwM e)
 
 withDynFlags :: MonadInterpreter m => (GHC.DynFlags -> m a) -> m a
 withDynFlags action
