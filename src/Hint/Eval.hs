@@ -67,21 +67,12 @@ eval expr = do in_scope_show   <- supportShow
 runStmt :: (MonadInterpreter m) => String -> m ()
 runStmt = mayFail . runGhc1 go
     where
-#if __GLASGOW_HASKELL__ >= 800
     go statements = do
         result <- GHC.execStmt statements GHC.execOptions
         return $ case result of
             GHC.ExecComplete { GHC.execResult = Right _ } -> Just ()
             GHC.ExecComplete { GHC.execResult = Left  e } -> throw e
             _                                             -> Nothing
-#else
-    go statements = do
-        result <- GHC.runStmt statements GHC.RunToCompletion
-        return $ case result of
-            GHC.RunOk _        -> Just ()
-            GHC.RunException e -> throw e
-            _                  -> Nothing
-#endif
 
 -- | Conceptually, @parens s = \"(\" ++ s ++ \")\"@, where s is any valid haskell
 -- expression. In practice, it is harder than this.

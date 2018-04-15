@@ -24,11 +24,8 @@ unsafeSetGhcOption = setGhcOption
 --   context.
 --
 --   Warning: Some options may interact badly with the Interpreter.
-unsafeRunInterpreterWithArgs :: (MonadMask m, MonadIO m
-#if __GLASGOW_HASKELL__ < 800
-                                 , Functor m
-#endif
-                             ) => [String]
+unsafeRunInterpreterWithArgs :: (MonadMask m, MonadIO m)
+                             => [String]
                              -> InterpreterT m a
                              -> m (Either InterpreterError a)
 unsafeRunInterpreterWithArgs = runInterpreterWithArgs
@@ -39,11 +36,8 @@ unsafeRunInterpreterWithArgs = runInterpreterWithArgs
 --   a machine in which GHC is not installed.
 --
 --   A typical libdir value could be "/usr/lib/ghc-8.0.1/ghc-8.0.1".
-unsafeRunInterpreterWithArgsLibdir :: (MonadIO m, MonadMask m
-#if __GLASGOW_HASKELL__ < 800
-                                 , Functor m
-#endif
-                                   ) => [String]
+unsafeRunInterpreterWithArgsLibdir :: (MonadIO m, MonadMask m)
+                                   => [String]
                                    -> String
                                    -> InterpreterT m a
                                    -> m (Either InterpreterError a)

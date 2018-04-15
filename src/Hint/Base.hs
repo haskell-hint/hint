@@ -32,9 +32,9 @@ import Hint.Extension
 
 -- | Version of the underlying ghc api. Values are:
 --
--- * @710@ for GHC 7.10.x
+-- * @802@ for GHC 8.2.x
 --
--- * @800@ for GHC 8.0.x
+-- * @804@ for GHC 8.4.x
 --
 -- * etc...
 ghcVersion :: Int
@@ -98,27 +98,15 @@ instance Exception InterpreterError
     displayException (GhcException err) = "GhcException: " ++ err
 
 type RunGhc  m a =
-#if __GLASGOW_HASKELL__ >= 800
     (forall n.(MonadIO n, MonadMask n) => GHC.GhcT n a)
-#else
-    (forall n.(MonadIO n, MonadMask n, Functor n) => GHC.GhcT n a)
-#endif
  -> m a
 
 type RunGhc1 m a b =
-#if __GLASGOW_HASKELL__ >= 800
     (forall n.(MonadIO n, MonadMask n) => a -> GHC.GhcT n b)
-#else
-    (forall n.(MonadIO n, MonadMask n, Functor n) => a -> GHC.GhcT n b)
-#endif
  -> (a -> m b)
 
 type RunGhc2 m a b c =
-#if __GLASGOW_HASKELL__ >= 800
     (forall n.(MonadIO n, MonadMask n) => a -> b -> GHC.GhcT n c)
-#else
-    (forall n.(MonadIO n, MonadMask n, Functor n) => a -> b -> GHC.GhcT n c)
-#endif
  -> (a -> b -> m c)
 
 data SessionData a = SessionData {

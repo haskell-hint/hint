@@ -33,11 +33,8 @@ newtype InterpreterT m a = InterpreterT {
                            }
     deriving (Functor, Monad, MonadIO, MonadThrow, MonadCatch, MonadMask)
 
-execute :: (MonadIO m, MonadMask m
-#if __GLASGOW_HASKELL__ < 800
-            , Functor m
-#endif
-        ) => String
+execute :: (MonadIO m, MonadMask m)
+        => String
         -> InterpreterSession
         -> InterpreterT m a
         -> m (Either InterpreterError a)
@@ -49,11 +46,8 @@ execute libdir s = try
 instance MonadTrans InterpreterT where
     lift = InterpreterT . lift . lift
 
-runGhcImpl :: (MonadIO m, MonadMask m
-#if __GLASGOW_HASKELL__ < 800
-               , MonadThrow m, Functor m
-#endif
-               ) => RunGhc (InterpreterT m) a
+runGhcImpl :: (MonadIO m, MonadMask m)
+           => RunGhc (InterpreterT m) a
 runGhcImpl a =
   InterpreterT (lift a)
    `catches`
@@ -109,31 +103,22 @@ initialize args =
 -- NB. The underlying ghc will overwrite certain signal handlers
 -- (SIGINT, SIGHUP, SIGTERM, SIGQUIT on Posix systems, Ctrl-C handler on Windows).
 -- In future versions of hint, this might be controlled by the user.
-runInterpreter :: (MonadIO m, MonadMask m
-#if __GLASGOW_HASKELL__ < 800
-                   , Functor m
-#endif
-               ) => InterpreterT m a
+runInterpreter :: (MonadIO m, MonadMask m)
+               => InterpreterT m a
                -> m (Either InterpreterError a)
 runInterpreter = runInterpreterWithArgs []
 
 -- | Executes the interpreter, setting args passed in as though they
 -- were command-line args. Returns @Left InterpreterError@ in case of
 -- error.
-runInterpreterWithArgs :: (MonadIO m, MonadMask m
-#if __GLASGOW_HASKELL__ < 800
-                           , Functor m
-#endif
-                       ) => [String]
+runInterpreterWithArgs :: (MonadIO m, MonadMask m)
+                       => [String]
                        -> InterpreterT m a
                        -> m (Either InterpreterError a)
 runInterpreterWithArgs args = runInterpreterWithArgsLibdir args GHC.Paths.libdir
 
-runInterpreterWithArgsLibdir :: (MonadIO m, MonadMask m
-#if __GLASGOW_HASKELL__ < 800
-                                 , Functor m
-#endif
-                             ) => [String]
+runInterpreterWithArgsLibdir :: (MonadIO m, MonadMask m)
+                             => [String]
                              -> String
                              -> InterpreterT m a
                              -> m (Either InterpreterError a)
@@ -145,10 +130,6 @@ runInterpreterWithArgsLibdir args libdir action =
           newInterpreterSession = newSessionData ()
           cleanSession =
                do cleanPhantomModules
-#if __GLASGOW_HASKELL__ < 800
-                  runGhc $ do dflags <- GHC.getSessionDynFlags
-                              GHC.defaultCleanupHandler dflags (return ())
-#endif
 
 {-# NOINLINE uniqueToken #-}
 uniqueToken :: MVar ()
@@ -198,11 +179,7 @@ newSessionData a =
        }
 
 mkLogHandler :: IORef [GhcError] -> GhcErrLogger
-#if __GLASGOW_HASKELL__ >= 800
 mkLogHandler r df _ _ src style msg =
-#else
-mkLogHandler r df _ src style msg =
-#endif
     let renderErrMsg = GHC.showSDoc df
         errorEntry = mkGhcError renderErrMsg src style msg
     in modifyIORef r (errorEntry :)
@@ -223,10 +200,6 @@ instance (MonadIO m, MonadMask m, Functor m) => MonadInterpreter (InterpreterT m
     --
     runGhc = runGhcImpl
 
-#if __GLASGOW_HASKELL__ >= 800
 instance (Monad m) => Applicative (InterpreterT m) where
-#else
-instance (Monad m, Applicative m) => Applicative (InterpreterT m) where
-#endif
     pure  = return
     (<*>) = ap

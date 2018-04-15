@@ -12,8 +12,8 @@ It is, essentially, a huge subset of the GHC API wrapped in a simpler
 API.
 
 Compatibility is kept with the three last major GHC releases. For
-example, if the current version is GHC 8.2, Hint will work on 8.2, 8.0
-and 7.10.
+example, if the current version is GHC 8.4, Hint will work on 8.4, 8.2
+and 8.0.
 
 ### Example
 

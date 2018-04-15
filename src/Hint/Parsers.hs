@@ -56,9 +56,7 @@ failOnParseError parser expr = mayFail go
                              let logger'  = logger dflags
                                  errStyle = GHC.defaultErrStyle dflags
                              liftIO $ logger'
-#if __GLASGOW_HASKELL__ >= 800
                                               GHC.NoReason
-#endif
                                               GHC.SevError
                                               span
                                               errStyle

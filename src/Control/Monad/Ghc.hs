@@ -25,11 +25,7 @@ instance (Functor m, Monad m) => Applicative (GhcT m) where
   pure  = return
   (<*>) = ap
 
-#if __GLASGOW_HASKELL__ >= 800
 runGhcT :: (MonadIO m, MonadMask m) => Maybe FilePath -> GhcT m a -> m a
-#else
-runGhcT :: (Functor m, MonadIO m, MonadCatch m, MonadMask m) => Maybe FilePath -> GhcT m a -> m a
-#endif
 runGhcT f = unMTLA . GHC.runGhcT f . unGhcT
 
 instance MTL.MonadTrans GhcT where

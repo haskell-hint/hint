@@ -27,9 +27,7 @@ import FastString as X (fsLit)
 
 import DynFlags as X (xFlags, xopt, LogAction, FlagSpec(..))
 
-#if __GLASGOW_HASKELL__ >= 800
 import DynFlags as X (WarnReason(NoReason))
-#endif
 
 import PprTyThing as X (pprTypeForUser)
 import SrcLoc as X (mkRealSrcLoc)

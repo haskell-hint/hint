@@ -6,11 +6,7 @@ module Hint.Annotations (
 import Control.Monad
 import Data.Data
 import Annotations
-#if __GLASGOW_HASKELL__ >= 800
 import GHC.Serialized
-#else
-import Serialized
-#endif
 
 import Hint.Base
 import HscTypes (hsc_mod_graph, ms_mod)
