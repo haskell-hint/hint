@@ -17,6 +17,9 @@ module Hint.Configuration (
 import Control.Monad
 import Control.Monad.Catch
 import Data.Char
+#if defined(NEED_PHANTOM_DIRECTORY)
+import Data.Maybe (maybe)
+#endif
 import Data.List (intercalate)
 
 import qualified Hint.GHC as GHC
@@ -121,6 +124,11 @@ searchPath = Option setter getter
           setter p = do onConf $ \c -> c{searchFilePath = p}
                         setGhcOption "-i" -- clear the old path
                         setGhcOption $ "-i" ++ intercalate ":" p
+#if defined(NEED_PHANTOM_DIRECTORY)
+                        mfp <- fromState phantomDirectory
+                        maybe (return ())
+                              (\fp -> setGhcOption $ "-i" ++ fp) mfp
+#endif
 
 fromConf :: MonadInterpreter m => (InterpreterConfiguration -> a) -> m a
 fromConf f = fromState (f . configuration)

@@ -32,6 +32,12 @@ import System.Random
 import System.FilePath
 import System.Directory
 
+#if defined(NEED_PHANTOM_DIRECTORY)
+import Data.Maybe (maybe)
+import Hint.Configuration (setGhcOption)
+import System.IO.Temp
+#endif
+
 type ModuleText = String
 
 -- When creating a phantom module we have a situation similar to that of
@@ -50,9 +56,27 @@ newPhantomModule =
        let nums = concat [show (abs n::Int), show p, filter isDigit $ concat (ls ++ is)]
        let mod_name = 'M':nums
        --
-       tmp_dir <- liftIO getTemporaryDirectory
+       tmp_dir <- getPhantomDirectory
        --
-       return PhantomModule{pmName = mod_name, pmFile = tmp_dir </> nums}
+       return PhantomModule{pmName = mod_name, pmFile = tmp_dir </> mod_name <.> "hs"}
+
+getPhantomDirectory :: MonadInterpreter m => m FilePath
+getPhantomDirectory =
+#if defined(NEED_PHANTOM_DIRECTORY)
+    -- When a module is loaded by file name, ghc-8.4.1 loses track of the
+    -- file location after the first time it has been loaded, so we create
+    -- a directory for the phantom modules and add it to the search path.
+    do mfp <- fromState phantomDirectory
+       case mfp of
+           Just fp -> return fp
+           Nothing -> do tmp_dir <- liftIO getTemporaryDirectory
+                         fp <- liftIO $ createTempDirectory tmp_dir "hint"
+                         onState (\s -> s{ phantomDirectory = Just fp })
+                         setGhcOption $ "-i" ++ fp
+                         return fp
+#else
+    do liftIO getTemporaryDirectory
+#endif
 
 allModulesInContext :: MonadInterpreter m => m ([ModuleName], [ModuleName])
 allModulesInContext = runGhc getContextNames
@@ -343,6 +367,11 @@ cleanPhantomModules =
                         importQualHackMod = Nothing,
                         qualImports         = []})
        liftIO $ mapM_ (removeFile . pmFile) (old_active ++ old_zombie)
+#if defined(NEED_PHANTOM_DIRECTORY)
+       old_phantomdir <- fromState phantomDirectory
+       onState (\s -> s{phantomDirectory    = Nothing})
+       liftIO $ do maybe (return ()) removeDirectory old_phantomdir
+#endif
 
 -- | All imported modules are cleared from the context, and
 --   loaded modules are unloaded. It is similar to a @:load@ in

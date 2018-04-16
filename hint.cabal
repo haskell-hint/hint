@@ -57,6 +57,12 @@ library
       build-depends: ghc-boot
   }
 
+  if impl(ghc >= 8.4 && < 8.6) {
+      build-depends: temporary
+      cpp-options: -DNEED_PHANTOM_DIRECTORY
+  }
+
+
   if !os(windows) {
       build-depends: unix >= 2.2.0.0
   }
