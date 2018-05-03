@@ -41,7 +41,7 @@ test-suite unit-tests
                   directory,
                   filepath,
                   extensible-exceptions,
-                  exceptions == 0.8.*
+                  exceptions == 0.10.*
 
   if !os(windows) {
       build-depends: unix >= 2.2.0.0
@@ -56,7 +56,7 @@ library
                  ghc-boot,
                  mtl,
                  filepath,
-                 exceptions == 0.8.*,
+                 exceptions == 0.10.*,
                  random,
                  directory
 

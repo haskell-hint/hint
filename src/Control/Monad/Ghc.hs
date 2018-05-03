@@ -62,6 +62,14 @@ instance (MonadIO m, MonadMask m) => MonadMask (GhcT m) where
 
     uninterruptibleMask = mask
 
+    generalBracket acquire release body
+      = wrap $ \s -> generalBracket (unwrap acquire s)
+                                    (\a exitCase -> unwrap (release a exitCase) s)
+                                    (\a -> unwrap (body a) s)
+      where
+        wrap g   = GhcT $ GHC.GhcT $ \s -> MTLAdapter (g s)
+        unwrap m = unMTLA . GHC.unGhcT (unGhcT m)
+
 instance (MonadIO m, MonadCatch m, MonadMask m) => GHC.ExceptionMonad (GhcT m) where
     gcatch  = catch
     gmask f = mask (\x -> f x)
