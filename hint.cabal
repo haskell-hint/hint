@@ -41,7 +41,7 @@ test-suite unit-tests
                   directory,
                   filepath,
                   extensible-exceptions,
-                  exceptions == 0.10.*
+                  exceptions >= 0.10.0
 
   if !os(windows) {
       build-depends: unix >= 2.2.0.0
