@@ -44,7 +44,7 @@ rawRunGhcT mb_top_dir ghct = do
     GHC.initGhcMonad mb_top_dir
     withCleanupSession ghct
 
-#ifdef __GLASGOW_HASKELL__ < 802
+#if __GLASGOW_HASKELL__ < 802
 withCleanupSession :: GHC.GhcMonad m => m a -> m a
 withCleanupSession ghc = ghc `GHC.gfinally` cleanup
   where
