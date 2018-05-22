@@ -44,7 +44,7 @@ rawRunGhcT mb_top_dir ghct = do
     GHC.initGhcMonad mb_top_dir
     withCleanupSession ghct
 
-#ifdef GHC801
+#ifdef __GLASGOW_HASKELL__ < 802
 withCleanupSession :: GHC.GhcMonad m => m a -> m a
 withCleanupSession ghc = ghc `GHC.gfinally` cleanup
   where
@@ -54,12 +54,12 @@ withCleanupSession ghc = ghc `GHC.gfinally` cleanup
       liftIO $ do
           cleanTempFiles dflags
           cleanTempDirs dflags
-#ifdef GHCI
+#if GHCI
           stopIServ hsc_env -- shut down the IServ
 #endif /* GHCI */
-#else /* GHC801 */
+#else /* __GLASGOW_HASKELL__ < 802 */
 withCleanupSession = GHC.withCleanupSession
-#endif /* GHC801 */
+#endif /* __GLASGOW_HASKELL__ < 802 */
 
 runGhcT :: (MonadIO m, MonadMask m) => Maybe FilePath -> GhcT m a -> m a
 runGhcT f = unMTLA . rawRunGhcT f . unGhcT
