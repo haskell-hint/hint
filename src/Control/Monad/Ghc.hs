@@ -58,6 +58,7 @@ withCleanupSession ghc = ghc `GHC.gfinally` cleanup
           stopIServ hsc_env -- shut down the IServ
 #endif /* GHCI */
 #else /* __GLASGOW_HASKELL__ < 802 */
+withCleanupSession :: GHC.GhcMonad m => m a -> m a
 withCleanupSession = GHC.withCleanupSession
 #endif /* __GLASGOW_HASKELL__ < 802 */
 
