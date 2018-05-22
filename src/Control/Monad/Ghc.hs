@@ -1,3 +1,5 @@
+{-# LANGUAGE CPP #-}
+
 module Control.Monad.Ghc (
     GhcT, runGhcT
 ) where
@@ -42,6 +44,7 @@ rawRunGhcT mb_top_dir ghct = do
     GHC.initGhcMonad mb_top_dir
     withCleanupSession ghct
 
+#ifdef GHC801
 withCleanupSession :: GHC.GhcMonad m => m a -> m a
 withCleanupSession ghc = ghc `GHC.gfinally` cleanup
   where
@@ -53,7 +56,10 @@ withCleanupSession ghc = ghc `GHC.gfinally` cleanup
           cleanTempDirs dflags
 #ifdef GHCI
           stopIServ hsc_env -- shut down the IServ
-#endif
+#endif /* GHCI */
+#else /* GHC801 */
+withCleanupSession = GHC.withCleanupSession
+#endif /* GHC801 */
 
 runGhcT :: (MonadIO m, MonadMask m) => Maybe FilePath -> GhcT m a -> m a
 runGhcT f = unMTLA . rawRunGhcT f . unGhcT
