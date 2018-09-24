@@ -1,6 +1,6 @@
 # hint
 
-[![Build Status](https://travis-ci.org/mvdan/hint.svg?branch=master)](https://travis-ci.org/mvdan/hint)
+[![Build Status](https://travis-ci.com/haskell-hint/hint.svg?branch=master)](https://travis-ci.com/haskell-hint/hint)
 [![Hackage](https://img.shields.io/hackage/v/hint.svg)](https://hackage.haskell.org/package/hint)
 
 This library defines an Interpreter monad. It allows to load Haskell

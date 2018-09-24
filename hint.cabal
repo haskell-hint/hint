@@ -15,7 +15,7 @@ license:      BSD3
 license-file: LICENSE
 author:       The Hint Authors
 maintainer:   mvdan@mvdan.cc
-homepage:     https://github.com/mvdan/hint
+homepage:     https://github.com/haskell-hint/hint
 
 cabal-version: >= 1.9.2
 build-type:    Simple
@@ -28,7 +28,7 @@ extra-source-files: README.md
 
 source-repository head
   type:     git
-  location: https://github.com/mvdan/hint
+  location: https://github.com/haskell-hint/hint
 
 test-suite unit-tests
   type:           exitcode-stdio-1.0

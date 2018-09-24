@@ -10,11 +10,11 @@
 -- scratch if said wheel is already invented.
 --
 -- In case you find something here especially useful, please submit
--- an issue or a pull request at https://github.com/mvdan/hint so
+-- an issue or a pull request at https://github.com/haskell-hint/hint so
 -- we can discuss making it part of the official public API.
 --
 -- Some further context can be found here:
--- https://github.com/mvdan/hint/pull/48#issuecomment-358722638
+-- https://github.com/haskell-hint/hint/pull/48#issuecomment-358722638
 
 
 
