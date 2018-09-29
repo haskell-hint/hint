@@ -1,3 +1,5 @@
+{-# LANGUAGE CPP #-}
+
 module Control.Monad.Ghc (
     GhcT, runGhcT
 ) where
@@ -13,12 +15,17 @@ import Control.Monad.Catch
 
 import Data.IORef
 
+import SysTools
+import HscTypes
+
 import qualified GHC
 import qualified MonadUtils as GHC
 import qualified Exception as GHC
 import qualified GhcMonad as GHC
 
 import qualified DynFlags as GHC
+
+import GHCi (stopIServ)
 
 newtype GhcT m a = GhcT { unGhcT :: GHC.GhcT (MTLAdapter m) a }
                  deriving (Functor, Monad, GHC.HasDynFlags)
@@ -35,7 +42,25 @@ rawRunGhcT mb_top_dir ghct = do
   let session = GHC.Session ref
   flip GHC.unGhcT session $ {-GHC.withSignalHandlers $-} do -- do _not_ catch ^C
     GHC.initGhcMonad mb_top_dir
-    GHC.withCleanupSession ghct
+    withCleanupSession ghct
+
+#if __GLASGOW_HASKELL__ < 802
+withCleanupSession :: GHC.GhcMonad m => m a -> m a
+withCleanupSession ghc = ghc `GHC.gfinally` cleanup
+  where
+   cleanup = do
+      hsc_env <- GHC.getSession
+      let dflags = hsc_dflags hsc_env
+      liftIO $ do
+          cleanTempFiles dflags
+          cleanTempDirs dflags
+#if GHCI
+          stopIServ hsc_env -- shut down the IServ
+#endif /* GHCI */
+#else /* __GLASGOW_HASKELL__ < 802 */
+withCleanupSession :: GHC.GhcMonad m => m a -> m a
+withCleanupSession = GHC.withCleanupSession
+#endif /* __GLASGOW_HASKELL__ < 802 */
 
 runGhcT :: (MonadIO m, MonadMask m) => Maybe FilePath -> GhcT m a -> m a
 runGhcT f = unMTLA . rawRunGhcT f . unGhcT
