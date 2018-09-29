@@ -3,7 +3,6 @@ module Hint.Annotations (
     getValAnnotations
 ) where
 
-import Control.Monad
 import Data.Data
 import Annotations
 import GHC.Serialized
@@ -15,7 +14,7 @@ import qualified Hint.GHC as GHC
 -- Get the annotations associated with a particular module.
 getModuleAnnotations :: (Data a, MonadInterpreter m) => a -> String -> m [a]
 getModuleAnnotations _ x = do
-    mods <- liftM (GHC.mgModSummaries . hsc_mod_graph) $ runGhc GHC.getSession
+    mods <- fmap (GHC.mgModSummaries . hsc_mod_graph) $ runGhc GHC.getSession
     let x' = filter ((==) x . GHC.moduleNameString . GHC.moduleName . ms_mod) mods
     v <- mapM (anns . ModuleTarget . ms_mod) x'
     return $ concat v

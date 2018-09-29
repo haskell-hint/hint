@@ -328,7 +328,7 @@ fails action = (action >> return False) `catchIE` (\_ -> return True)
     catchIE = MC.catch
 
 succeeds :: (MonadCatch m, MonadIO m) => m a -> m Bool
-succeeds = liftM not . fails
+succeeds = fmap not . fails
 
 data IOTestCase = IOTestCase String [FilePath] ((Interpreter () -> IO (Either InterpreterError ())) -> IO (Either InterpreterError ()))
 

@@ -76,8 +76,8 @@ instance (MonadIO m, MonadMask m) => MonadMask (GhcT m) where
         unwrap m = unMTLA . GHC.unGhcT (unGhcT m)
 
 instance (MonadIO m, MonadCatch m, MonadMask m) => GHC.ExceptionMonad (GhcT m) where
-    gcatch  = catch
-    gmask f = mask (\x -> f x)
+    gcatch = catch
+    gmask  = mask
 
 instance (Functor m, MonadIO m, MonadCatch m, MonadMask m) => GHC.GhcMonad (GhcT m) where
     getSession = GhcT GHC.getSession

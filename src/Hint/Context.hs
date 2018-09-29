@@ -75,7 +75,7 @@ getPhantomDirectory =
                          setGhcOption $ "-i" ++ fp
                          return fp
 #else
-    do liftIO getTemporaryDirectory
+    liftIO getTemporaryDirectory
 #endif
 
 allModulesInContext :: MonadInterpreter m => m ([ModuleName], [ModuleName])
@@ -179,8 +179,8 @@ removePhantomModule pm =
        onState (\s -> s{activePhantoms = filter (pm /=) $ activePhantoms s})
        --
        if safeToRemove
-         then do mayFail $ do res <- runGhc1 GHC.load GHC.LoadAllTargets
-                              return $ guard (isSucceeded res) >> Just ()
+         then mayFail $ do res <- runGhc1 GHC.load GHC.LoadAllTargets
+                           return $ guard (isSucceeded res) >> Just ()
               `finally` do liftIO $ removeFile (pmFile pm)
          else onState (\s -> s{zombiePhantoms = pm:zombiePhantoms s})
 
@@ -269,7 +269,7 @@ setTopLevelModules ms =
        ms_mods <- mapM findModule (nub $ ms ++ map pmName active_pms)
        --
        let mod_is_interpr = runGhc1 GHC.moduleIsInterpreted
-       not_interpreted <- filterM (liftM not . mod_is_interpr) ms_mods
+       not_interpreted <- filterM (fmap not . mod_is_interpr) ms_mods
        unless (null not_interpreted) $
          throwM $ NotAllowed ("These modules are not interpreted:\n" ++
                               unlines (map moduleToString not_interpreted))

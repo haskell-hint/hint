@@ -128,8 +128,7 @@ runInterpreterWithArgsLibdir args libdir action =
        execute libdir s (initialize args >> action `finally` cleanSession)
     where rethrowGhcException   = throwM . GhcException . showGhcEx
           newInterpreterSession = newSessionData ()
-          cleanSession =
-               do cleanPhantomModules
+          cleanSession = cleanPhantomModules
 
 {-# NOINLINE uniqueToken #-}
 uniqueToken :: MVar ()
@@ -192,7 +191,7 @@ mkGhcError render src_span style msg = GhcError{errMsg = niceErrMsg}
 -- The MonadInterpreter instance
 
 instance (MonadIO m, MonadMask m, Functor m) => MonadInterpreter (InterpreterT m) where
-    fromSession f = InterpreterT $ fmap f ask
+    fromSession f = InterpreterT $ asks f
     --
     modifySessionRef target f =
         do ref <- fromSession target
