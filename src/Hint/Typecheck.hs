@@ -65,11 +65,7 @@ normalizeType type_expr =
 
 -- add a bogus Maybe, in order to use it with mayFail
 exprType :: GHC.GhcMonad m => String -> m (Maybe GHC.Type)
-#if __GLASGOW_HASKELL__ < 802
-exprType = fmap Just . GHC.exprType
-#else
 exprType = fmap Just . GHC.exprType GHC.TM_Inst
-#endif
 
 -- add a bogus Maybe, in order to use it with mayFail
 typeKind :: GHC.GhcMonad m => String -> m (Maybe (GHC.Type, GHC.Kind))

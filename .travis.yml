@@ -3,14 +3,14 @@ language: c
 
 matrix:
   include:
-    - env: CABALVER=1.24 GHCVER=8.0.2
-      addons: {apt: {packages: [cabal-install-1.24, ghc-8.0.2], sources: [hvr-ghc]}}
     - env: CABALVER=2.0  GHCVER=8.2.2
       addons: {apt: {packages: [cabal-install-2.0,  ghc-8.2.2], sources: [hvr-ghc]}}
     - env: CABALVER=2.2  GHCVER=8.4.3
       addons: {apt: {packages: [cabal-install-2.2,  ghc-8.4.3], sources: [hvr-ghc]}}
-    - env: CABALVER=2.2  GHCVER=8.4.3 CONFIG_OPTS=--enable-executable-dynamic
-      addons: {apt: {packages: [cabal-install-2.2,  ghc-8.4.3], sources: [hvr-ghc]}}
+    - env: CABALVER=2.4  GHCVER=8.6.1
+      addons: {apt: {packages: [cabal-install-2.4,  ghc-8.6.1], sources: [hvr-ghc]}}
+    - env: CABALVER=2.4  GHCVER=8.6.1 CONFIG_OPTS=--enable-executable-dynamic
+      addons: {apt: {packages: [cabal-install-2.4,  ghc-8.6.1], sources: [hvr-ghc]}}
 
 cache:
   directories:
