@@ -32,9 +32,9 @@ import Hint.Extension
 
 -- | Version of the underlying ghc api. Values are:
 --
--- * @802@ for GHC 8.2.x
---
 -- * @804@ for GHC 8.4.x
+--
+-- * @806@ for GHC 8.6.x
 --
 -- * etc...
 ghcVersion :: Int
