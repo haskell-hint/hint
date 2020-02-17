@@ -2,9 +2,11 @@ import Data.List
 
 import Control.Monad
 import Language.Haskell.Interpreter
+import System.Directory
 
 main :: IO ()
-main = do r <- runInterpreter testHint
+main = do setCurrentDirectory "examples"
+          r <- runInterpreter testHint
           case r of
             Left err -> putStrLn $ errorString err
             Right () -> return ()

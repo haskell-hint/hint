@@ -23,10 +23,8 @@ before_install:
 
 install:
   - travis_retry cabal update
-  - cabal build --only-dependencies --enable-tests
+  - cabal v2-build --only-dependencies --enable-tests
 
 script:
-  - cabal configure --enable-tests $CONFIG_OPTS
-  - cabal test
-  - cabal install
-  - (cd examples && runghc example.hs)
+  - cabal v2-test
+  - cabal v2-exec -- runghc examples/example.hs
