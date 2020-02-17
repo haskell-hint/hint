@@ -35,7 +35,7 @@ unsafeRunInterpreterWithArgs = runInterpreterWithArgs
 --   containers, etc.) can be found. This allows you to run hint on
 --   a machine in which GHC is not installed.
 --
---   A typical libdir value could be "/usr/lib/ghc-8.0.1/ghc-8.0.1".
+--   A typical libdir value could be @/usr/lib/ghc-8.0.1/ghc-8.0.1@.
 unsafeRunInterpreterWithArgsLibdir :: (MonadIO m, MonadMask m)
                                    => [String]
                                    -> String
