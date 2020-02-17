@@ -7,9 +7,9 @@ matrix:
       addons: {apt: {packages: [cabal-install-3.2,  ghc-8.4.4], sources: [hvr-ghc]}}
     - env: CABALVER=3.2  GHCVER=8.6.5
       addons: {apt: {packages: [cabal-install-3.2,  ghc-8.6.5], sources: [hvr-ghc]}}
-    - env: CABALVER=3.2  GHCVER=8.8.1
+    - env: CABALVER=3.2  GHCVER=8.8.2
       addons: {apt: {packages: [cabal-install-3.2,  ghc-8.8.2], sources: [hvr-ghc]}}
-    - env: CABALVER=3.2  GHCVER=8.8.1 CONFIG_OPTS=--enable-executable-dynamic
+    - env: CABALVER=3.2  GHCVER=8.8.2 CONFIG_OPTS=--enable-executable-dynamic
       addons: {apt: {packages: [cabal-install-3.2,  ghc-8.8.2], sources: [hvr-ghc]}}
 
 cache:
