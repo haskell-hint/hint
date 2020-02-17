@@ -27,4 +27,4 @@ install:
 
 script:
   - cabal v2-test
-  - cabal v2-exec -- runghc examples/example.hs
+  - cabal v2-exec -- runghc examples/example.hs | diff examples/expected.txt -

@@ -1,0 +1,34 @@
+Load SomeModule.hs
+
+Put the Prelude, Data.Map and *SomeModule in scope
+Data.Map is qualified as M!
+
+Now we can query the type of an expression
+e.g. typeOf M.singleton (f, g, h, 42)
+Num d => a1 -> M.Map ([a2] -> a2, [a3] -> a3, [a4] -> a4, d) a1
+
+Observe that f, g and h are defined in SomeModule.hs, but f is not exported. Let's check it...
+[Fun "g",Fun "h"]
+
+We can also evaluate an expression; the result will be a string
+e.g. eval "length $ concat [[f,g],[h]]"
+"3"
+
+Or we can interpret it as a proper, say, int value!
+3
+
+This works for any monomorphic type, even for function types
+e.g. we interpret \(Just x) -> succ x with type Maybe Int -> Int and apply it on Just 7
+8
+
+And sometimes we can even use the type system to infer the expected type (eg Maybe Bool -> Bool)!
+False
+
+Here we evaluate an expression of type string, that when evaluated (again) leads to a string
+Worked!
+
+We can also execute statements in the IO monad and bind new names, e.g.
+    x <- return 42
+    print x
+42
+
