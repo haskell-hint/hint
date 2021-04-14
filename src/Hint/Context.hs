@@ -189,7 +189,7 @@ isPhantomModule mn = do (as,zs) <- getPhantomModules
 
 -- | Tries to load all the requested modules from their source file.
 --   Modules my be indicated by their ModuleName (e.g. \"My.Module\") or
---   by the full path to its source file.
+--   by the full path to its source file (searchPath is not used).
 --
 -- The interpreter is 'reset' both before loading the modules and in the event
 -- of an error.
