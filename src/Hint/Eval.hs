@@ -1,19 +1,22 @@
 module Hint.Eval (
       interpret, as, infer,
       unsafeInterpret,
-      eval, runStmt,
+      eval, runStmt, runStmt',
       parens
 ) where
 
 import qualified GHC.Exts (unsafeCoerce#)
 
 import Control.Exception
+import Control.Monad (void)
+import Control.Monad.IO.Class (liftIO)
 
 import Data.Typeable (Typeable)
 import qualified Data.Typeable as Typeable
 
 import Hint.Base
 import Hint.Context
+import Hint.Internal
 import Hint.Parsers
 import Hint.Util
 
@@ -73,6 +76,12 @@ runStmt s = mayFail $ runGhc $ go s
             GHC.ExecComplete { GHC.execResult = Right _ } -> Just ()
             GHC.ExecComplete { GHC.execResult = Left  e } -> throw e
             _                                             -> Nothing
+
+-- | Like runStmt but only prints not raises errors
+runStmt' :: (MonadInterpreter m) => String -> m ()
+runStmt' s = void (runGhc $ GHC.execStmt s GHC.execOptions)
+             `catchIE`
+             onCompilationError (mapM_ (liftIO . putStrLn . errMsg))
 
 -- | Conceptually, @parens s = \"(\" ++ s ++ \")\"@, where s is any valid haskell
 -- expression. In practice, it is harder than this.
