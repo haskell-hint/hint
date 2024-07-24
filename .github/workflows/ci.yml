@@ -67,12 +67,7 @@ jobs:
   # dependencies.
   cabal:
     name: newest
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        include:
-          - ghc-version: '9.8.1'
-            os: ubuntu-latest
+    runs-on: ubuntu-latest
 
     steps:
     - uses: actions/checkout@v2
@@ -81,8 +76,8 @@ jobs:
       id: setup-haskell-cabal
       name: Setup Cabal
       with:
-        ghc-version: ${{ matrix.ghc }}
-        cabal-version: ${{ matrix.cabal }}
+        ghc-version: '9.8.1'
+        cabal-version: latest
 
     # This freeze file is regenerated on every build, so we will always test
     # with the most recent version of our dependencies allowed by our upper
