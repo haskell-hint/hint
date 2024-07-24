@@ -73,6 +73,7 @@ jobs:
         include:
           - ghc-version: '9.8.1'
             os: ubuntu-latest
+            cabal: latest
 
     steps:
     - uses: actions/checkout@v2
