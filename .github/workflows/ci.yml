@@ -73,6 +73,8 @@ jobs:
         include:
           - ghc-version: '9.8.1'
             os: ubuntu-latest
+          - ghc-version: '9.10.1'
+            os: ubuntu-latest
 
     steps:
     - uses: actions/checkout@v2
