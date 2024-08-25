@@ -1,3 +1,7 @@
+### NEXT_RELEASE
+
+* Support GHC 9.10
+
 ### 0.9.0.8
 
 * Support GHC 9.8
