@@ -35,7 +35,7 @@ newtype GhcT m a = GhcT { unGhcT :: GHC.GhcT (MTLAdapter m) a }
                  deriving (Functor, Monad, GHC.HasDynFlags)
 
 instance (Functor m, Monad m) => Applicative (GhcT m) where
-  pure  = return
+  pure  = GhcT . pure
   (<*>) = ap
 
 -- adapted from https://github.com/ghc/ghc/blob/ghc-8.2/compiler/main/GHC.hs#L450-L459

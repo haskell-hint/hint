@@ -196,5 +196,5 @@ instance (MonadIO m, MonadMask m, Functor m) => MonadInterpreter (InterpreterT m
     runGhc = runGhcImpl
 
 instance (Monad m) => Applicative (InterpreterT m) where
-    pure  = return
+    pure  = InterpreterT . pure
     (<*>) = ap
