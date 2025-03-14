@@ -9,7 +9,7 @@ module Hint.Base (
     ImportList(..), ModuleQualification(..), ModuleImport(..),
 
     ModuleName, PhantomModule(..),
-    findModule, moduleIsLoaded,
+    findModule, lookupTyCon, lookupDataCon, moduleIsLoaded,
     withDynFlags,
 
     ghcVersion,
@@ -174,6 +174,26 @@ findModule :: MonadInterpreter m => ModuleName -> m GHC.Module
 findModule mn = mapGhcExceptions NotAllowed $
                     runGhc $ GHC.findModule mod_name Nothing
     where mod_name = GHC.mkModuleName mn
+
+lookupTyCon :: MonadInterpreter m => ModuleName -> String -> m GHC.TyCon
+lookupTyCon moduleName tyConName = do
+  mapGhcExceptions NotAllowed $ do
+    runGhc $ do
+      GHC.lookupTyCon moduleName tyConName >>= \case
+        Right tyCon -> do
+          pure tyCon
+        Left err -> do
+          throwM $ UnknownError err
+
+lookupDataCon :: MonadInterpreter m => ModuleName -> String -> m GHC.DataCon
+lookupDataCon moduleName dataConName = do
+  mapGhcExceptions NotAllowed $ do
+    runGhc $ do
+      GHC.lookupDataCon moduleName dataConName >>= \case
+        Right dataCon -> do
+          pure dataCon
+        Left err -> do
+          throwM $ UnknownError err
 
 moduleIsLoaded :: MonadInterpreter m => ModuleName -> m Bool
 moduleIsLoaded mn = (True <$ findModule mn)

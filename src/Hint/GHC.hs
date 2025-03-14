@@ -31,6 +31,8 @@ module Hint.GHC (
 #if MIN_VERSION_ghc(9,6,0)
     getPrintUnqual,
 #endif
+    lookupTyCon,
+    lookupDataCon,
     -- * Re-exports
     module X,
 ) where
@@ -140,8 +142,14 @@ import ConLike as X (ConLike(RealDataCon))
 {-------------------- Imports for Shims --------------------}
 
 import Control.Monad.IO.Class (MonadIO)
+
 -- guessTarget
 import qualified GHC (guessTarget)
+
+-- lookupTyCon, lookupDataCon
+import Control.Monad.Trans.Class (lift)
+import Control.Monad.Trans.Writer.CPS (execWriterT, tell)
+import Data.Foldable (for_)
 
 #if MIN_VERSION_ghc(9,6,0)
 -- dynamicGhc
@@ -675,3 +683,45 @@ guessTarget = GHC.guessTarget
 getPrintUnqual :: GhcMonad m => m PrintUnqualified
 getPrintUnqual = GHC.getNamePprCtx
 #endif
+
+lookupCandidates :: GhcMonad m => String -> String -> m [Name]
+lookupCandidates moduleString name = do
+  parseName (moduleString ++ "." ++ name)
+
+lookupTyCon :: GhcMonad m => String -> String -> m (Either String TyCon)
+lookupTyCon moduleString tyConString = do
+  names <- lookupCandidates moduleString tyConString
+  tyCons <- execWriterT $ do
+    for_ names $ \name -> do
+      maybeTyThing <- lift $ lookupName name
+      case maybeTyThing of
+        Just (ATyCon tyCon) -> do
+          tell [tyCon]
+        _ -> do
+          pure ()
+  case tyCons of
+    [tyCon] -> do
+      pure $ Right tyCon
+    [] -> do
+      pure $ Left $ "Could not find type constructor " ++ tyConString
+    _ -> do
+      pure $ Left $ "Ambiguous type constructor " ++ tyConString
+
+lookupDataCon :: GhcMonad m => String -> String -> m (Either String DataCon)
+lookupDataCon moduleString dataConString = do
+  names <- lookupCandidates moduleString dataConString
+  dataCons <- execWriterT $ do
+    for_ names $ \name -> do
+      maybeTyThing <- lift $ lookupName name
+      case maybeTyThing of
+        Just (AConLike (RealDataCon dataCon)) -> do
+          tell [dataCon]
+        _ -> do
+          pure ()
+  case dataCons of
+    [dataCon] -> do
+      pure $ Right dataCon
+    [] -> do
+      pure $ Left $ "Could not find data constructor " ++ dataConString
+    _ -> do
+      pure $ Left $ "Ambiguous data constructor " ++ dataConString
