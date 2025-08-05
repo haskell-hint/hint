@@ -187,7 +187,9 @@ import qualified Data.Set as Set
 
 -- parseDynamicFlags
 import qualified GHC (parseDynamicFlags)
+#if !MIN_VERSION_ghc(9,12,0)
 import GHC.Driver.CmdLine (Warn)
+#endif
 
 -- pprTypeForUser
 import qualified GHC.Core.TyCo.Ppr as GHC (pprSigmaType)

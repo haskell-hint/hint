@@ -17,7 +17,9 @@ module Hint.Configuration (
 import Control.Monad
 import Control.Monad.Catch
 import Data.Char
+#if !MIN_VERSION_ghc(9,12,0)
 import Data.Maybe (maybe)
+#endif
 import Data.List (intercalate)
 
 import qualified Hint.GHC as GHC

@@ -1,6 +1,13 @@
+#if MIN_VERSION_ghc(9,10,0)
+{-# LANGUAGE RequiredTypeArguments #-}
+#endif
 module Hint.Annotations (
     getModuleAnnotations,
-    getValAnnotations
+    getValAnnotations,
+#if MIN_VERSION_ghc(9,10,0)
+    getModuleAnnotations',
+    getValAnnotations',
+#endif
 ) where
 
 import Data.Data
@@ -27,17 +34,42 @@ import MonadUtils (concatMapM)
 #endif
 
 -- Get the annotations associated with a particular module.
-getModuleAnnotations :: (Data a, MonadInterpreter m) => a -> String -> m [a]
+getModuleAnnotations :: forall m a. (Data a, MonadInterpreter m) => a -> String -> m [a]
+#if MIN_VERSION_ghc(9,10,0)
+getModuleAnnotations _ = getModuleAnnotations' a
+#else
 getModuleAnnotations _ x = do
     mods <- GHC.mgModSummaries . hsc_mod_graph <$> runGhc GHC.getSession
     let x' = filter ((==) x . GHC.moduleNameString . GHC.moduleName . ms_mod) mods
     concatMapM (anns . ModuleTarget . ms_mod) x'
+#endif
+
+#if MIN_VERSION_ghc(9,10,0)
+-- Get the annotations associated with a particular module.
+getModuleAnnotations' :: MonadInterpreter m => forall a -> Data a => String -> m [a]
+getModuleAnnotations' _ x = do
+    mods <- GHC.mgModSummaries . hsc_mod_graph <$> runGhc GHC.getSession
+    let x' = filter ((==) x . GHC.moduleNameString . GHC.moduleName . ms_mod) mods
+    concatMapM (anns . ModuleTarget . ms_mod) x'
+#endif
 
 -- Get the annotations associated with a particular function.
-getValAnnotations :: (Data a, MonadInterpreter m) => a -> String -> m [a]
+getValAnnotations :: forall m a. (Data a, MonadInterpreter m) => a -> String -> m [a]
+#if MIN_VERSION_ghc(9,10,0)
+getValAnnotations _ = getValAnnotations' a
+#else
 getValAnnotations _ s = do
     names <- runGhc $ GHC.parseName s
     concatMapM (anns . NamedTarget) names
+#endif
+
+#if MIN_VERSION_ghc(9,10,0)
+-- Get the annotations associated with a particular function.
+getValAnnotations' :: MonadInterpreter m => forall a -> Data a => String -> m [a]
+getValAnnotations' _ s = do
+    names <- runGhc $ GHC.parseName s
+    concatMapM (anns . NamedTarget) names
+#endif
 
 anns :: (MonadInterpreter m, Data a) => AnnTarget GHC.Name -> m [a]
 anns target = runGhc $ GHC.findGlobalAnns deserializeWithData target
