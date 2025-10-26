@@ -18,9 +18,11 @@ import Control.Monad.Trans.Class
 import Control.Monad.Trans.Reader
 import Control.Monad.Catch as MC
 
+#if !MIN_VERSION_ghc(9,12,0)
 import Data.Typeable (Typeable)
 import Control.Concurrent.MVar
 import System.IO.Unsafe (unsafePerformIO)
+#endif
 
 import Data.IORef
 import Data.Maybe
@@ -152,7 +154,10 @@ ifInterpreterNotRunning action = liftIO (tryTakeMVar uniqueToken) >>= \ case
 -- | The installed version of ghc is not thread-safe. This exception
 --   is thrown whenever you try to execute @runInterpreter@ while another
 --   instance is already running.
-data MultipleInstancesNotAllowed = MultipleInstancesNotAllowed deriving Typeable
+data MultipleInstancesNotAllowed = MultipleInstancesNotAllowed
+#if !MIN_VERSION_ghc(9,12,0)
+  deriving Typeable
+#endif
 
 instance Exception MultipleInstancesNotAllowed
 

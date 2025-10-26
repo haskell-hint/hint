@@ -21,7 +21,9 @@ import Control.Monad.IO.Class
 import Control.Monad.Catch as MC
 
 import Data.IORef
+#if !MIN_VERSION_ghc(9,12,0)
 import Data.Dynamic
+#endif
 import qualified Data.List
 
 import qualified Hint.GHC as GHC
@@ -53,7 +55,11 @@ data InterpreterError = UnknownError String
                       -- | GhcExceptions from the underlying GHC API are caught
                       -- and rethrown as this.
                       | GhcException String
+#if MIN_VERSION_ghc(9,12,0)
+                      deriving (Show)
+#else
                       deriving (Show, Typeable)
+#endif
 
 data InterpreterState = St {
                            activePhantoms    :: [PhantomModule],

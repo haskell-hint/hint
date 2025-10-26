@@ -23,6 +23,9 @@ module Language.Haskell.Interpreter(
     -- to mean \'{\' and \'}\' respectively. We cannot put the
     -- pragmas inline in the code since GHC scarfs them up.
     getModuleAnnotations, getValAnnotations,
+#if MIN_VERSION_ghc(9,10,0)
+    getModuleAnnotations', getValAnnotations',
+#endif
     -- ** Type inference
      typeChecksWithDetails,
      typeOf, typeChecks, kindOf, normalizeType,
