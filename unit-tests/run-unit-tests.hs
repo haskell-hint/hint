@@ -495,6 +495,19 @@ test_signal_handlers = IOTestCase "signal_handlers" [] $ \wrapInterp -> do
         return r
 #endif
 
+test_error_capture :: IOTestCase
+test_error_capture = IOTestCase "error_capture" [mod_file] $ \wrapInterp-> do
+        liftIO $ writeFile mod_file "$"
+        r <- wrapInterp runInterpreter $ do
+          loadModules [mod_file]
+        case r of
+          Right () -> assertFailure "Loaded invalid file"
+          Left (WontCompile _) -> pure $ Right ()
+          Left e -> assertFailure $ "Got other than WontCompiler error: " ++ show e
+
+    where mod_name = "TEST_ErrorCapture"
+          mod_file = mod_name ++ ".hs"
+
 tests :: [TestCase]
 tests = [test_reload_modified
         ,test_lang_exts
@@ -522,6 +535,7 @@ ioTests :: [IOTestCase]
 ioTests = [test_signal_handlers
           ,test_package_db
           ,test_ghc_environment_file
+          ,test_error_capture
           ]
 
 main :: IO ()
