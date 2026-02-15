@@ -1,6 +1,7 @@
-### NEXT_RELEASE
+### 0.9.0.9
 
-* Support GHC 9.10 and GHC 9.12
+* Support GHC 9.10, GHC 9.12, and GHC 9.14
+* Remove noncanonical monad instance definitions for future GHC compatibility
 
 ### 0.9.0.8
 

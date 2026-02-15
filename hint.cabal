@@ -1,5 +1,5 @@
 name:         hint
-version:      0.9.0.8
+version:      0.9.0.9
 description:
         This library defines an Interpreter monad. It allows to load Haskell
         modules, browse them, type-check and evaluate strings with Haskell
