@@ -71,7 +71,7 @@ jobs:
     strategy:
       matrix:
         include:
-          - ghc-version: '9.12.1'
+          - ghc-version: '9.14.1'
             os: ubuntu-latest
 
     steps:
