@@ -85,10 +85,11 @@ getContext = do
          m ([GHC.Module], [GHC.ImportDecl GHC.GhcPs])
     f (ns, ds) i = case i of
       (GHC.IIDecl d)     -> return (ns, d : ds)
-      (GHC.IIModule m) -> do n <- GHC.findModule m Nothing; return (n : ns, ds)
-
-modToIIMod :: GHC.Module -> GHC.InteractiveImport
-modToIIMod = GHC.IIModule . GHC.moduleName
+      _ -> do
+        mMod <- GHC.interactiveImportToModule i
+        case mMod of
+          Just n -> return (n : ns, ds)
+          Nothing -> return (ns, ds)
 
 getContextNames :: GHC.GhcMonad m => m([String], [String])
 getContextNames = fmap (map name *** map decl) getContext
@@ -97,7 +98,7 @@ getContextNames = fmap (map name *** map decl) getContext
 
 setContext :: GHC.GhcMonad m => [GHC.Module] -> [GHC.ImportDecl GHC.GhcPs] -> m ()
 setContext ms ds =
-  let ms' = map modToIIMod ms
+  let ms' = map GHC.moduleToInteractiveImport ms
       ds' = map GHC.IIDecl ds
       is = ms' ++ ds'
   in GHC.setContext is

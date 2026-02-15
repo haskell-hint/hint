@@ -1,0 +1,7 @@
+resolver: nightly-2026-02-15
+compiler: ghc-9.12.3
+packages:
+- .
+extra-deps:
+  # for the ghc-environment-file test
+  - acme-dont-1.2

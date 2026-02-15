@@ -28,6 +28,8 @@ module Hint.GHC (
     errMsgSpan,
     fileTarget,
     guessTarget,
+    moduleToInteractiveImport,
+    interactiveImportToModule,
 #if MIN_VERSION_ghc(9,6,0)
     getPrintUnqual,
 #endif
@@ -668,6 +670,22 @@ guessTarget :: GhcMonad m => String -> Maybe GHC.Phase -> m GHC.Target
 guessTarget t pM = GHC.guessTarget t Nothing pM
 #else
 guessTarget = GHC.guessTarget
+#endif
+
+-- moduleToInteractiveImport / interactiveImportToModule
+-- In GHC 9.14+, IIModule takes a Module directly instead of ModuleName
+moduleToInteractiveImport :: Module -> InteractiveImport
+interactiveImportToModule :: InteractiveImport -> GhcMonad m => m (Maybe Module)
+#if MIN_VERSION_ghc(9,14,0)
+moduleToInteractiveImport = IIModule
+interactiveImportToModule (IIModule m) = return $ Just m
+interactiveImportToModule _ = return Nothing
+#else
+moduleToInteractiveImport = IIModule . moduleName
+interactiveImportToModule (IIModule mn) = do
+  m <- findModule mn Nothing
+  return $ Just m
+interactiveImportToModule _ = return Nothing
 #endif
 
 -- getPrintUnqual

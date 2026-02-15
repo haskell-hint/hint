@@ -26,9 +26,12 @@ jobs:
           - stack-8.8.4.yaml
           - stack-8.10.7.yaml
           - stack-9.0.2.yaml
-          - stack-9.2.7.yaml
-          - stack-9.4.5.yaml
-          - stack-9.6.1.yaml
+          - stack-9.2.8.yaml
+          - stack-9.4.8.yaml
+          - stack-9.6.6.yaml
+          - stack-9.8.4.yaml
+          - stack-9.10.3.yaml
+          - stack-9.12.3.yaml
         os:
           - ubuntu-latest
 
@@ -71,7 +74,7 @@ jobs:
     strategy:
       matrix:
         include:
-          - ghc-version: '9.12.1'
+          - ghc-version: '9.14.1'
             os: ubuntu-latest
 
     steps:
