@@ -1,0 +1,7 @@
+resolver: lts-23.28
+compiler: ghc-9.8.4
+packages:
+- .
+extra-deps:
+  # for the ghc-environment-file test
+  - acme-dont-1.2
