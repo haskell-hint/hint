@@ -1,4 +1,5 @@
-resolver: lts-20.24
+resolver: lts-20.26
+ghc: ghc-9.2.8
 packages:
 - .
 extra-deps:
