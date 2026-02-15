@@ -33,9 +33,9 @@ jobs:
           - ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v4
 
-    - uses: actions/cache@v2
+    - uses: actions/cache@v4
       name: Cache Stack Artifacts
       with:
         path: |
@@ -75,7 +75,7 @@ jobs:
             os: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v4
 
     - uses: haskell-actions/setup@v2
       id: setup-haskell-cabal
@@ -94,7 +94,7 @@ jobs:
 
     # Only reuse the cached copy of our dependencies if our freeze file matches
     # the cache's copy.
-    - uses: actions/cache@v2
+    - uses: actions/cache@v4
       name: Cache Cabal Artifacts
       with:
         path: |
