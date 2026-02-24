@@ -19,7 +19,9 @@ import qualified GHC.Utils.Logger as GHC
 #endif
 #if MIN_VERSION_ghc(9,0,0)
 import qualified GHC.Utils.Monad as GHC
+#if !MIN_VERSION_ghc(9,12,0)
 import qualified GHC.Utils.Exception as GHC
+#endif
 import qualified GHC.Driver.Monad as GHC
 
 import qualified GHC.Driver.Session as GHC
