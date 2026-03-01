@@ -5,10 +5,8 @@ on:
   schedule:
     - cron: '0 0 1 * *'
 
-  # To test this GitHub Action, uncomment this block and open a PR; then comment
-  # it out again before merging the PR.
-  #pull_request:
-  #  types: [opened, synchronize]
+  # Allow manual triggering from the GitHub UI
+  workflow_dispatch:
 
 jobs:
   readme:
@@ -37,22 +35,25 @@ jobs:
     - name: Extract and run code
       run: |
         TEST_FILE="TEST_Readme.hs"
-        README="$(cat README.md)"
-        CODE="$(echo "$README" | grep '^    ' | sed 's/^    //g')"
+
+        # Extract code from the fenced code block in README.md
+        CODE="$(awk 'f && /^```/{f=0} f{print} /^```haskell/{f=1}' README.md)"
 
         echo "module T where" > "$TEST_FILE"
         echo "$CODE" >> "$TEST_FILE"
 
-        # {-# LANGUAGE LambdaCase, ScopedTypeVariables #-}
+        # {-# LANGUAGE LambdaCase, ScopedTypeVariables, TypeApplications #-}
         EXTS_LINE="$(echo "$CODE" | head -n 1)"
 
         # LambdaCase
         # ScopedTypeVariables
+        # TypeApplications
         EXTS="$(echo "$EXTS_LINE" | tr ' ' '\n' | grep -v '#' | grep -v "LANGUAGE" | tr -d ',')"
 
         # -XLambdaCase
         # -XScopedTypeVariables
-        DOCTEST_FLAGS="$(echo "$EXTS" | sed 's/^/-X/g')"
+        # -XTypeApplications
+        DOCTEST_FLAGS="$(echo "$EXTS" | grep -v '^$' | sed 's/^/-X/g')"
 
 
         stack --stack-yaml="stack-8.10.7.yaml" install doctest
